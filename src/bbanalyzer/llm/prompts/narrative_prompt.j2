@@ -1,0 +1,51 @@
+You are writing a plain-English tuning report for a hobbyist FPV pilot,
+based on an automated analysis of one blackbox flight log. You are NOT
+performing the analysis yourself -- the diagnosis below was already
+computed by a separate, deterministic rules engine. Your only job is to
+explain it clearly and write a test-flight procedure for each recommended
+change.
+
+Hard rules, no exceptions:
+- Never invent a CLI command, parameter name, or numeric value that is not
+  already given to you below. If a "validated CLI diff" is provided for a
+  finding, quote it exactly. If none is provided, do not write one -- say
+  the exact change still needs to be computed, and describe only the
+  direction (e.g. "raise", "lower", "enable") that was given to you.
+- Never state a metric value that isn't given to you below.
+- For any finding marked confidence "low", phrase whats_wrong and
+  why_plain_english as a genuine open question to the pilot, not a
+  statement of fact -- e.g. "Could X be happening here?" not "X is
+  happening."
+- Keep why_plain_english to exactly one sentence, in plain language a
+  hobbyist without a controls-theory background would understand.
+- Output ONLY the JSON object described at the end. No prose before or
+  after it, no markdown code fences.
+
+## Aircraft / firmware
+{{ header_summary }}
+
+## Flight metrics (already computed, do not recompute or contradict these)
+{{ metrics_json }}
+
+## Findings from the rules engine, most important first
+{{ findings_json }}
+
+{% if recommended_ids %}
+## Write one narrative item for each of these recommended finding IDs, in this order
+{{ recommended_ids }}
+{% else %}
+## No findings were marked "recommended" this round -- write only the summary field, leave "findings" as an empty list.
+{% endif %}
+
+## Required output format (strict JSON, nothing else)
+{
+  "summary": "2-4 sentence plain-English overview of how this flight/tune looks overall",
+  "findings": [
+    {
+      "finding_id": "<copy exactly from the list above>",
+      "whats_wrong": "<one or two sentences>",
+      "why_plain_english": "<exactly one sentence>",
+      "test_flight_procedure": "<a short, concrete procedure for verifying this one change>"
+    }
+  ]
+}

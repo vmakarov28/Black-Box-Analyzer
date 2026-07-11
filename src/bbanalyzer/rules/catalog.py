@@ -149,6 +149,9 @@ def rule_noise_rpm_linked(axis: str, m: FlightMetrics, cfg: HeaderConfig) -> Fin
             if cfg.rpm_filter_enabled is not True
             else "Check prop balance/condition and verify motor_poles is correct; consider raising rpm_filter_harmonics."
         ),
+        param_hints=[
+            ParamHint(key_guess="rpm_filter_harmonics", direction="enable" if cfg.rpm_filter_enabled is not True else "increase")
+        ],
         source="betaflight-wiki",
     )
 
@@ -200,6 +203,7 @@ def rule_filter_noise_reduction_low(axis: str, m: FlightMetrics, cfg: HeaderConf
             "can't fully verify for this firmware version."
         ),
         suggestion="Cross-check against the noise heatmap findings; if noise is genuinely elevated, filtering may need tightening.",
+        param_hints=[ParamHint(key_guess="gyro_lowpass_hz", direction="decrease", magnitude_pct=10, axis=axis)],
         source="measurement",
         tunable_note=f"the {NOISE_REDUCTION_LOW_DB:.0f}dB threshold is heuristic",
     )
@@ -229,6 +233,7 @@ def rule_filter_latency_high(axis: str, m: FlightMetrics, cfg: HeaderConfig) -> 
             "reduction finding."
         ),
         suggestion="If the quad feels laggy despite acceptable step-response numbers, consider raising gyro/D-term lowpass cutoffs slightly.",
+        param_hints=[ParamHint(key_guess="gyro_lowpass_hz", direction="increase", magnitude_pct=10, axis=axis)],
         source="measurement",
         tunable_note=f"the {FILTER_LATENCY_HIGH_MS:.0f}ms threshold is heuristic",
     )
@@ -262,6 +267,11 @@ def rule_propwash_bounce_back(axis: str, m: FlightMetrics, cfg: HeaderConfig) ->
             "than a plain PID overshoot."
         ),
         suggestion="Consider raising throttle-based D or iterm-relax/anti-gravity settings; this is a nuanced area -- treat as a starting hypothesis, test one change at a time.",
+        # anti_gravity_gain is a single global (not per-axis) setting, so this
+        # intentionally uses axis=None -- the engine's dedup then lets at most
+        # one axis's propwash finding claim it as "recommended" per round,
+        # rather than all three axes separately proposing the same key.
+        param_hints=[ParamHint(key_guess="anti_gravity_gain", direction="increase", magnitude_pct=15, axis=None)],
         source="community-heuristic",
         tunable_note=f"the {PROPWASH_RMS_WARN_DEGPS:.0f}/{PROPWASH_RMS_CRITICAL_DEGPS:.0f}deg/s and {PROPWASH_BOUNCE_RATE_WARN:.0%} thresholds are heuristic",
     )
