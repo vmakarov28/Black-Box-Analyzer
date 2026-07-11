@@ -32,6 +32,22 @@ def test_render_report_is_self_contained(tmp_path):
         assert bad not in html.lower()
 
 
+def test_render_report_has_working_theme_toggle(tmp_path):
+    lf = load(DATA / "good_tune.BBL")
+    flight = lf.flights[0]
+    m = compute_flight_metrics(flight)
+    findings = diagnose(m, flight.config)
+    narrative = render_fallback_narrative(findings, m)
+    out = render_report(flight, m, findings, narrative, tmp_path / "report.html")
+    html = out.read_text(encoding="utf-8")
+
+    assert "bbToggleTheme" in html
+    assert 'html[data-theme="light"]' in html
+    assert "@media print" in html
+    # the toggle is inline JS only -- no external script tag anywhere
+    assert "<script src" not in html.lower()
+
+
 def test_render_report_no_recommended_findings(tmp_path):
     from bbanalyzer.dsp.metrics import FlightMetrics
     from bbanalyzer.llm.schema import NarrativeReport
