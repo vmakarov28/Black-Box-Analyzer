@@ -33,6 +33,9 @@ def render_report(
     log_filename: str = "",
     version_mismatch_warning: str | None = None,
     compare: dict | None = None,
+    tune_plan=None,
+    tune_warnings: list[str] | None = None,
+    rates_report: list | None = None,
 ) -> Path:
     cfg = flight.config
     template = Template(_TEMPLATE_PATH.read_text(encoding="utf-8"))
@@ -83,6 +86,30 @@ def render_report(
         raw_header=flight.header,
         version=__version__,
         generated_by=narrative.generated_by,
+        tune_plan=(
+            {
+                "stages": tune_plan.stages,
+                "rejected": tune_plan.rejected,
+                "warnings": tune_warnings or [],
+                "source": tune_plan.source,
+                "simplified_tuning_active": tune_plan.simplified_tuning_active,
+            }
+            if tune_plan is not None
+            else None
+        ),
+        rates_report=(
+            [
+                {
+                    "axis": r.axis,
+                    "measured_p95_degps": f"{r.measured_p95_degps:.0f} deg/s" if r.measured_p95_degps is not None else "-",
+                    "configured_max_degps": f"{r.configured_max_degps:.0f} deg/s" if r.configured_max_degps is not None else None,
+                    "configured_max_note": r.configured_max_note,
+                }
+                for r in rates_report
+            ]
+            if rates_report
+            else None
+        ),
     )
 
     output_path = Path(output_path)

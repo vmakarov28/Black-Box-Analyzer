@@ -40,6 +40,7 @@ class AxisResult:
     filter_comparison: FilterComparison
     stick_snap_count: int
     propwash_scores: list[PropwashScore] = field(default_factory=list)
+    stick_p95_degps: float | None = None  # 95th percentile |commanded setpoint|, for rates-honesty reporting (Phase 6)
 
 
 @dataclass
@@ -90,11 +91,13 @@ def compute_flight_metrics(flight) -> FlightMetrics:
                 for chop in chops
                 if (s := score_propwash(time_s, gyro, setpoint, chop.end_time_s)) is not None
             ]
+            stick_p95 = float(np.percentile(np.abs(setpoint), 95)) if len(setpoint) else None
         else:
             step = StepResponseResult(axis, np.linspace(0, 0.5, 2), None, None, None, 0, 0, None, None, None, None,
                                        ["setpoint unavailable for this axis"])
             snaps = []
             propwash = []
+            stick_p95 = None
 
         noise = compute_noise_heatmap(time_s, gyro, throttle_pct, axis=axis)
         diagonal = detect_diagonal_trace(noise)
@@ -110,6 +113,7 @@ def compute_flight_metrics(flight) -> FlightMetrics:
             filter_comparison=filt,
             stick_snap_count=len(snaps),
             propwash_scores=propwash,
+            stick_p95_degps=stick_p95,
         )
 
         p = f"step_response.{axis}."
@@ -134,6 +138,7 @@ def compute_flight_metrics(flight) -> FlightMetrics:
 
         e = f"events.{axis}."
         flat[e + "stick_snap_count"] = len(snaps)
+        flat[e + "stick_p95_degps"] = stick_p95
         rms_vals = [p.rms_error_degps for p in propwash]
         flat[e + "propwash_max_rms_degps"] = max(rms_vals) if rms_vals else None
         flat[e + "propwash_bounce_back_rate"] = (

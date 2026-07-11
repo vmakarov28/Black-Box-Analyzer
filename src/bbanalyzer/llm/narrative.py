@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import json
 import logging
+import re
 from pathlib import Path
 
 from bbanalyzer.dsp.metrics import FlightMetrics
@@ -80,6 +81,28 @@ def _coerce_question(text: str, fallback_text: str) -> str:
     return text if "?" in text else fallback_text
 
 
+# Safety net for the "never propose a specific numeric target value" prompt
+# rule -- caught in practice during the Phase 4 benchmark: llama3.1:8b wrote
+# "raise D from 18 to 21" in test_flight_procedure despite the instruction
+# not to, computed from a current value it *was* given in the header
+# summary. A prompt instruction alone isn't reliable enough for a number
+# that could get typed into a real flight controller, so any field is
+# checked and, if it looks like a fabricated target value, replaced with
+# the deterministic template phrasing for that field instead.
+_FABRICATED_VALUE_RE = re.compile(
+    r"\bfrom\s+[-+]?\d+(\.\d+)?\s+to\s+[-+]?\d+(\.\d+)?\b"  # "from 18 to 21"
+    r"|\bset\s+\w+\s*(=|to)\s*[-+]?\d+(\.\d+)?\b"  # "set d_roll = 21" / "set d_roll to 21"
+    r"|\b\w+\s*=\s*[-+]?\d+(\.\d+)?\s*(->|→)\s*[-+]?\d+(\.\d+)?\b",  # "D=18 -> 21"
+    re.IGNORECASE,
+)
+
+
+def _scrub_fabricated_values(text: str, fallback_text: str, has_validated_diff: bool) -> str:
+    if has_validated_diff:
+        return text  # a validated diff was supplied -- the model was allowed to quote it
+    return fallback_text if _FABRICATED_VALUE_RE.search(text) else text
+
+
 def _parse_response(
     parsed: dict, findings: list[Finding], cli_diff_by_finding: dict[str, list[str]] | None
 ) -> NarrativeReport:
@@ -102,6 +125,11 @@ def _parse_response(
         if as_question:
             whats_wrong = _coerce_question(whats_wrong, fallback_mod._whats_wrong(f, True))
             why = _coerce_question(why, fallback_mod._why(f, True))
+
+        has_diff = bool(cli_diff_by_finding and f.id in cli_diff_by_finding)
+        whats_wrong = _scrub_fabricated_values(whats_wrong, fallback_mod._whats_wrong(f, as_question), has_diff)
+        why = _scrub_fabricated_values(why, fallback_mod._why(f, as_question), has_diff)
+        procedure = _scrub_fabricated_values(procedure, fallback_mod._procedure_for(f), has_diff)
         items.append(
             FindingNarrative(
                 finding_id=f.id,

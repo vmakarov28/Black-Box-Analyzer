@@ -154,6 +154,44 @@
 </section>
 {% endif %}
 
+{% if tune_plan %}
+<section>
+  <h2>Tune generator: staged CLI changes</h2>
+  {% if tune_plan.warnings %}
+  <div class="warn-banner">
+    {% for w in tune_plan.warnings %}&#9888; {{ w }}<br>{% endfor %}
+  </div>
+  {% endif %}
+  <p class="label">Source config: {{ tune_plan.source }}{% if tune_plan.simplified_tuning_active %} &middot; simplified tuning is active{% endif %}</p>
+  {% for stage in tune_plan.stages %}
+  <div class="finding">
+    <div class="finding-head"><span class="title">Stage {{ loop.index }}</span></div>
+    <pre class="diff">{% for c in stage %}set {{ c.key }} = {{ c.new_value }}{% if c.old_value %}   # was {{ c.old_value }}{% endif %}
+{% endfor %}save</pre>
+    <p class="label">Fly one test flight after this stage, then re-run bbanalyzer before applying the next.</p>
+  </div>
+  {% endfor %}
+  {% if tune_plan.rejected %}
+  <p class="label">Flagged for human review (never emitted):</p>
+  <ul class="observations">
+    {% for r in tune_plan.rejected %}<li><code>{{ r.key }}</code>: {{ r.reason }}</li>{% endfor %}
+  </ul>
+  {% endif %}
+</section>
+{% endif %}
+
+{% if rates_report %}
+<section>
+  <h2>Rates (preference-based, not a tuning defect)</h2>
+  <table class="metrics">
+    <tr><th>Axis</th><th>Measured p95 stick rate</th><th>Configured max rate</th><th>Note</th></tr>
+    {% for r in rates_report %}
+    <tr><td>{{ r.axis }}</td><td>{{ r.measured_p95_degps }}</td><td>{{ r.configured_max_degps or '-' }}</td><td>{{ r.configured_max_note }}</td></tr>
+    {% endfor %}
+  </table>
+</section>
+{% endif %}
+
 <section>
   <h2>All findings</h2>
   <table class="metrics">

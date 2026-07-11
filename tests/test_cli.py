@@ -70,9 +70,6 @@ def test_cli_analyze_garbage_file(tmp_path, capsys):
 
 def test_cli_analyze_bad_flight_index(tmp_path, capsys):
     out = tmp_path / "report.html"
-    rc = None
-    try:
-        main(["analyze", str(DATA / "good_tune.BBL"), "-o", str(out), "--no-llm", "--flight-index", "99"])
-    except SystemExit as e:
-        rc = e.code
-    assert rc != 0
+    rc = main(["analyze", str(DATA / "good_tune.BBL"), "-o", str(out), "--no-llm", "--flight-index", "99"])
+    assert rc == 1
+    assert "error:" in capsys.readouterr().err

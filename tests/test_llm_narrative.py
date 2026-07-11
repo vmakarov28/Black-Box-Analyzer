@@ -57,6 +57,57 @@ def test_parse_response_never_fabricates_cli_diff_from_model_text():
             assert line.startswith("#")
 
 
+def test_parse_response_scrubs_fabricated_numeric_target_values():
+    """Regression test for a real observed failure: llama3.1:8b wrote
+    'raise D from 18 to 21' in test_flight_procedure during the Phase 4
+    benchmark, despite the prompt instruction not to -- it computed a
+    plausible-looking but unvalidated target value from the current value
+    in the header summary. This must be caught even when the prompt rule
+    is followed imperfectly.
+    """
+    findings, m, cfg = _real_findings_and_metrics()
+    recommended = [f for f in findings if f.recommended]
+    assert recommended
+    target = recommended[0]
+    fake_model_output = {
+        "summary": "Test summary.",
+        "findings": [
+            {
+                "finding_id": target.id,
+                "whats_wrong": "The response is off.",
+                "why_plain_english": "Because the gain is off.",
+                "test_flight_procedure": "Raise D from 18 to 21 and fly again.",
+            }
+        ],
+    }
+    report = _parse_response(fake_model_output, findings, cli_diff_by_finding=None)
+    item = next(i for i in report.items if i.finding_id == target.id)
+    assert "18" not in item.test_flight_procedure
+    assert "21" not in item.test_flight_procedure
+
+
+def test_parse_response_allows_numbers_when_validated_diff_supplied():
+    findings, m, cfg = _real_findings_and_metrics()
+    recommended = [f for f in findings if f.recommended]
+    assert recommended
+    target = recommended[0]
+    diff_map = {target.id: ["set d_roll = 21"]}
+    fake_model_output = {
+        "summary": "Test summary.",
+        "findings": [
+            {
+                "finding_id": target.id,
+                "whats_wrong": "The response is off.",
+                "why_plain_english": "Because the gain is off.",
+                "test_flight_procedure": "Apply the change from 18 to 21 shown above and fly again.",
+            }
+        ],
+    }
+    report = _parse_response(fake_model_output, findings, cli_diff_by_finding=diff_map)
+    item = next(i for i in report.items if i.finding_id == target.id)
+    assert "from 18 to 21" in item.test_flight_procedure  # allowed: a validated diff backs this finding
+
+
 def test_parse_response_fills_missing_recommended_items_from_template():
     findings, m, cfg = _real_findings_and_metrics()
     recommended = [f for f in findings if f.recommended]

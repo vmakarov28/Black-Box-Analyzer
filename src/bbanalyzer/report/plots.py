@@ -116,3 +116,26 @@ def plot_filter_and_propwash_summary(m: FlightMetrics) -> str:
         a.grid(alpha=0.2, axis="y")
     fig.tight_layout()
     return _fig_to_data_uri(fig)
+
+
+def plot_step_response_comparison(before: FlightMetrics, after: FlightMetrics, before_label: str, after_label: str) -> str:
+    fig, axes = plt.subplots(1, 3, figsize=(12, 3.2), sharey=True)
+    for ax_plot, axis in zip(axes, ("roll", "pitch", "yaw")):
+        color = _AXIS_COLORS[axis]
+        ax_plot.axhline(1.0, color="#999", linestyle="--", linewidth=1)
+        ax_plot.axhspan(0.9, 1.1, color="#999", alpha=0.08)
+        b_sr = before.axes.get(axis).step_response if before.axes.get(axis) else None
+        a_sr = after.axes.get(axis).step_response if after.axes.get(axis) else None
+        if b_sr is not None and b_sr.response is not None:
+            ax_plot.plot(b_sr.time_s, b_sr.response, color=color, linewidth=1.4, linestyle="--", alpha=0.6, label=before_label)
+        if a_sr is not None and a_sr.response is not None:
+            ax_plot.plot(a_sr.time_s, a_sr.response, color=color, linewidth=1.8, label=after_label)
+        ax_plot.set_title(axis, fontsize=10)
+        ax_plot.set_xlabel("time (s)")
+        ax_plot.set_ylim(-0.3, 1.6)
+        ax_plot.grid(alpha=0.2)
+    axes[0].set_ylabel("normalized response")
+    axes[0].legend(fontsize=7, loc="lower right")
+    fig.suptitle("Step response: before vs after", fontsize=11)
+    fig.tight_layout()
+    return _fig_to_data_uri(fig)
