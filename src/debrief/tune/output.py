@@ -11,7 +11,7 @@ from pathlib import Path
 from debrief.tune.generator import TuneGeneratorResult
 
 
-def _stage_text(stage_num: int, changes: list) -> str:
+def stage_text(stage_num: int, changes: list) -> str:
     lines = [f"# Stage {stage_num} -- {len(changes)} change(s). Save, then fly one test flight before staging the next."]
     for c in changes:
         lines.append(f"# {c.reason} (confidence: {c.confidence})")
@@ -25,7 +25,7 @@ def _stage_text(stage_num: int, changes: list) -> str:
     return "\n".join(lines) + "\n"
 
 
-def _rollback_text(rollback: list) -> str:
+def rollback_text(rollback: list) -> str:
     if not rollback:
         return "# Nothing was changed -- no rollback needed.\n"
     lines = ["# Restores every key touched by the staged changes to its pre-change value."]
@@ -35,7 +35,7 @@ def _rollback_text(rollback: list) -> str:
     return "\n".join(lines) + "\n"
 
 
-def _changelog_text(result: TuneGeneratorResult) -> str:
+def changelog_text(result: TuneGeneratorResult) -> str:
     lines = ["| Stage | Key | Old | New | Reason | Confidence |", "|---|---|---|---|---|---|"]
     for i, stage in enumerate(result.stages, start=1):
         for c in stage:
@@ -58,15 +58,15 @@ def write_tune_files(result: TuneGeneratorResult, output_dir: str | Path) -> dic
 
     for i, stage in enumerate(result.stages, start=1):
         p = out / f"stage{i}.txt"
-        p.write_text(_stage_text(i, stage), encoding="utf-8")
+        p.write_text(stage_text(i, stage), encoding="utf-8")
         written[f"stage{i}"] = p
 
     rollback_path = out / "rollback.txt"
-    rollback_path.write_text(_rollback_text(result.rollback), encoding="utf-8")
+    rollback_path.write_text(rollback_text(result.rollback), encoding="utf-8")
     written["rollback"] = rollback_path
 
     changelog_path = out / "changelog.md"
-    changelog_path.write_text(_changelog_text(result), encoding="utf-8")
+    changelog_path.write_text(changelog_text(result), encoding="utf-8")
     written["changelog"] = changelog_path
 
     return written

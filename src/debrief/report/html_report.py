@@ -2,6 +2,11 @@
 network requests when opened. The only inputs are the outputs of the
 other layers (loader.Flight, dsp.FlightMetrics, rules Findings,
 llm.NarrativeReport) -- this module does no diagnosis of its own.
+
+render_report_html() does the pure rendering (str in, str out -- no
+filesystem I/O), so both the CLI (render_report(), which writes it to
+disk) and the local web app (which streams the string straight back in
+an HTTP response) share one rendering path.
 """
 from __future__ import annotations
 
@@ -20,29 +25,38 @@ from debrief.report.plots import (
     plot_step_responses,
 )
 from debrief.rules.flag import Finding
+from debrief.theme import THEME_CSS, THEME_SCRIPT_HEAD, THEME_SCRIPT_SYNC_LABEL
 
 _TEMPLATE_PATH = Path(__file__).parent / "templates" / "report.html.j2"
 
 
-def render_report(
+def render_report_html(
     flight: Flight,
     metrics: FlightMetrics,
     findings: list[Finding],
     narrative: NarrativeReport,
-    output_path: str | Path,
     log_filename: str = "",
     version_mismatch_warning: str | None = None,
     compare: dict | None = None,
     tune_plan=None,
     tune_warnings: list[str] | None = None,
     rates_report: list | None = None,
-) -> Path:
+    tune_downloads: dict | None = None,
+    home_url: str | None = None,
+    download_filename: str | None = None,
+) -> str:
     cfg = flight.config
     template = Template(_TEMPLATE_PATH.read_text(encoding="utf-8"))
 
     firmware_line = f"{cfg.firmware_name or 'unknown firmware'} {'.'.join(str(v) for v in cfg.firmware_version) if cfg.firmware_version else ''} on {cfg.target or 'unknown target'}"
+    tune_downloads = tune_downloads or {}
 
-    html = template.render(
+    return template.render(
+        theme_css=THEME_CSS,
+        theme_script_head=THEME_SCRIPT_HEAD,
+        theme_script_sync=THEME_SCRIPT_SYNC_LABEL,
+        home_url=home_url,
+        download_filename=download_filename,
         craft_name=cfg.craft_name or "Unnamed craft",
         firmware_line=firmware_line,
         log_filename=log_filename or flight.header.get("_source", ""),
@@ -93,6 +107,9 @@ def render_report(
                 "warnings": tune_warnings or [],
                 "source": tune_plan.source,
                 "simplified_tuning_active": tune_plan.simplified_tuning_active,
+                "downloads": tune_downloads.get("stages"),
+                "rollback_download": tune_downloads.get("rollback"),
+                "changelog_download": tune_downloads.get("changelog"),
             }
             if tune_plan is not None
             else None
@@ -112,6 +129,29 @@ def render_report(
         ),
     )
 
+
+def render_report(
+    flight: Flight,
+    metrics: FlightMetrics,
+    findings: list[Finding],
+    narrative: NarrativeReport,
+    output_path: str | Path,
+    log_filename: str = "",
+    version_mismatch_warning: str | None = None,
+    compare: dict | None = None,
+    tune_plan=None,
+    tune_warnings: list[str] | None = None,
+    rates_report: list | None = None,
+) -> Path:
+    html = render_report_html(
+        flight, metrics, findings, narrative,
+        log_filename=log_filename,
+        version_mismatch_warning=version_mismatch_warning,
+        compare=compare,
+        tune_plan=tune_plan,
+        tune_warnings=tune_warnings,
+        rates_report=rates_report,
+    )
     output_path = Path(output_path)
     output_path.write_text(html, encoding="utf-8")
     return output_path

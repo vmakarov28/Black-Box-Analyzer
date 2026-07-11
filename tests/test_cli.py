@@ -2,9 +2,10 @@ from pathlib import Path
 
 import pandas as pd
 
-from debrief.cli import _select_flight, main
+from debrief.cli import main
 from debrief.parse.header import HeaderConfig
 from debrief.parse.loader import Flight, LogFile
+from debrief.pipeline import select_flight
 
 DATA = Path(__file__).parent / "data"
 
@@ -23,17 +24,18 @@ def _dummy_flight(index: int, duration_s: float) -> Flight:
     )
 
 
-def test_select_flight_picks_longest_when_multiple(capsys):
+def test_select_flight_picks_longest_when_multiple():
     lf = LogFile(path=Path("dummy.bbl"), flights=[_dummy_flight(1, 5.0), _dummy_flight(2, 40.0)], n_declared_logs=2, skipped=[], decoder_stderr="")
-    chosen = _select_flight(lf, index=None)
+    chosen, messages = select_flight(lf, index=None)
     assert chosen.index == 2
-    assert "Multiple flights found" in capsys.readouterr().err
+    assert any("Multiple flights found" in m for m in messages)
 
 
 def test_select_flight_honors_explicit_index():
     lf = LogFile(path=Path("dummy.bbl"), flights=[_dummy_flight(1, 5.0), _dummy_flight(2, 40.0)], n_declared_logs=2, skipped=[], decoder_stderr="")
-    chosen = _select_flight(lf, index=1)
+    chosen, messages = select_flight(lf, index=1)
     assert chosen.index == 1
+    assert messages == []
 
 
 def test_cli_analyze_no_llm(tmp_path, capsys):

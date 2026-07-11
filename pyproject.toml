@@ -20,7 +20,7 @@ dependencies = [
 [project.optional-dependencies]
 llm = ["ollama>=0.3.0"]
 web = ["flask>=3.0"]
-dev = ["pytest>=8.0", "pytest-cov"]
+dev = ["pytest>=8.0", "pytest-cov", "flask>=3.0"]
 
 [project.scripts]
 debrief = "debrief.cli:main"

@@ -11,13 +11,15 @@
 set -euo pipefail
 cd "$(dirname "${BASH_SOURCE[0]}")/.."
 
-VENV_DIR="${BBANALYZER_VENV:-$HOME/.venvs/fpvbb}"
+VENV_DIR="${DEBRIEF_VENV:-$HOME/.venvs/fpvbb}"
 WITH_VALIDATOR=0
 WITH_LLM=0
+WITH_WEB=0
 for arg in "$@"; do
   case "$arg" in
     --with-validator) WITH_VALIDATOR=1 ;;
     --with-llm) WITH_LLM=1 ;;
+    --with-web) WITH_WEB=1 ;;
   esac
 done
 
@@ -26,6 +28,9 @@ python3 -m venv "$VENV_DIR" --upgrade-deps
 "$VENV_DIR/bin/pip" install -e ".[dev]"
 if [ "$WITH_LLM" = "1" ]; then
   "$VENV_DIR/bin/pip" install -e ".[llm]"
+fi
+if [ "$WITH_WEB" = "1" ]; then
+  "$VENV_DIR/bin/pip" install -e ".[web]"
 fi
 
 echo "== blackbox-tools (frame decoder) =="
@@ -64,3 +69,6 @@ fi
 echo
 echo "Setup complete. Activate with: source $VENV_DIR/bin/activate"
 echo "Try:  debrief analyze tests/data/good_tune.BBL -o /tmp/report.html"
+if [ "$WITH_WEB" = "1" ]; then
+  echo "Or:   debrief serve   (opens a local web UI at http://127.0.0.1:8765 -- upload/download buttons, no CLI needed)"
+fi

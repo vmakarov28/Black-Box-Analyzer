@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Debrief -- couldn't analyze that</title>
+<style>
+{{ theme_css }}
+  .wrap { max-width: 640px; margin: 80px auto; padding: 0 24px; text-align: center; }
+  .icon { font-size: 2.4rem; margin-bottom: 8px; }
+  h1 { font-size: 1.3rem; margin: 0 0 12px; }
+</style>
+<script>{{ theme_script_head }}</script>
+</head>
+<body>
+<div class="topbar">
+  <div class="topbar-inner">
+    <a class="brand" href="{{ home_url }}"><span class="dot"></span><b>Debrief</b></a>
+    <nav><button class="theme-toggle" id="themeToggle" onclick="bbToggleTheme()" type="button">Light mode</button><script>{{ theme_script_sync }}</script></nav>
+  </div>
+</div>
+<div class="wrap">
+  <div class="icon">&#9888;&#65039;</div>
+  <h1>Couldn't analyze that log</h1>
+  <div class="err-banner" style="text-align:left;">{{ message }}</div>
+  <p><a class="btn btn-primary" href="{{ home_url }}">Try another file</a></p>
+</div>
+</body>
+</html>

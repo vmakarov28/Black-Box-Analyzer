@@ -1,0 +1,269 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Debrief -- local Betaflight blackbox analysis</title>
+<style>
+{{ theme_css }}
+
+  .wrap { max-width: 760px; margin: 0 auto; padding: 0 24px 60px; }
+  .hero { text-align: center; padding: 56px 0 36px; }
+  .hero .logo { font-size: 2.4rem; font-weight: 800; letter-spacing: -.02em; margin: 0 0 8px; }
+  .hero .logo .dot-accent { color: var(--primary); }
+  .hero .tagline { color: var(--muted); font-size: 1rem; max-width: 480px; margin: 0 auto; line-height: 1.6; }
+  .hero .pills { display: flex; gap: 8px; justify-content: center; margin-top: 18px; flex-wrap: wrap; }
+  .pill {
+    font-size: 0.72rem; font-weight: 700; color: var(--muted); border: 1px solid var(--border-2);
+    border-radius: 999px; padding: 4px 12px; display: flex; align-items: center; gap: 6px;
+  }
+  .pill .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--success); }
+
+  .tabs { display: flex; gap: 4px; margin-bottom: 20px; border-bottom: 1px solid var(--border); }
+  .tab-btn {
+    background: none; border: none; color: var(--muted); font-family: inherit; font-size: 0.88rem; font-weight: 700;
+    padding: 10px 4px; margin-right: 20px; cursor: pointer; border-bottom: 2px solid transparent;
+  }
+  .tab-btn.active { color: var(--text); border-bottom-color: var(--primary); }
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  .panel { background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 24px; box-shadow: var(--shadow); }
+
+  .dropzone {
+    border: 2px dashed var(--border-2); border-radius: var(--radius); padding: 32px 20px; text-align: center;
+    cursor: pointer; transition: border-color .15s ease, background .15s ease; background: var(--bg-alt);
+  }
+  .dropzone:hover, .dropzone.dragover { border-color: var(--primary); background: var(--primary-tint); }
+  .dropzone.has-file { border-color: var(--success); border-style: solid; }
+  .dropzone .dz-icon { font-size: 1.8rem; margin-bottom: 6px; }
+  .dropzone .dz-text { color: var(--muted); font-size: 0.85rem; }
+  .dropzone .dz-filename { color: var(--success-light); font-weight: 700; font-size: 0.88rem; margin-top: 8px; }
+  .dropzone.small { padding: 16px; }
+
+  .row { display: flex; gap: 12px; }
+  .row > * { flex: 1; }
+
+  details.advanced { margin-top: 18px; }
+  details.advanced summary {
+    cursor: pointer; color: var(--muted); font-size: 0.82rem; font-weight: 700; padding: 8px 0;
+    list-style: none; display: flex; align-items: center; gap: 6px;
+  }
+  details.advanced summary::-webkit-details-marker { display: none; }
+  details.advanced summary::before { content: "\25B8"; transition: transform .15s ease; }
+  details.advanced[open] summary::before { transform: rotate(90deg); }
+  .field { margin: 14px 0; }
+  .field label { display: block; font-size: 0.78rem; color: var(--muted); margin-bottom: 6px; font-weight: 600; }
+  .field select, .field input[type=number] {
+    width: 100%; background: var(--bg-alt); border: 1px solid var(--border-2); color: var(--text);
+    border-radius: var(--radius-sm); padding: 8px 10px; font-family: inherit; font-size: 0.85rem;
+  }
+  .checkbox-field { display: flex; align-items: center; gap: 8px; margin: 10px 0; }
+  .checkbox-field input { accent-color: var(--primary); width: 15px; height: 15px; }
+  .checkbox-field label { font-size: 0.85rem; color: var(--text); cursor: pointer; }
+  .hint { color: var(--muted-2); font-size: 0.75rem; margin-top: 4px; }
+  .ollama-status {
+    font-size: 0.78rem; padding: 8px 12px; border-radius: var(--radius-sm); margin-top: 14px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .ollama-status.up { background: rgba(150, 226, 18, 0.1); color: var(--success-light); }
+  .ollama-status.down { background: rgba(255, 102, 0, 0.1); color: var(--warning-light); }
+
+  .submit-row { margin-top: 22px; display: flex; justify-content: flex-end; }
+  .btn-lg { padding: 12px 28px; font-size: 0.92rem; }
+
+  .overlay {
+    position: fixed; inset: 0; background: rgba(10, 10, 10, 0.88); display: none; align-items: center;
+    justify-content: center; flex-direction: column; z-index: 100; gap: 18px;
+  }
+  .overlay.active { display: flex; }
+  .spinner {
+    width: 42px; height: 42px; border: 3px solid var(--border-2); border-top-color: var(--primary);
+    border-radius: 50%; animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .overlay .msg { color: var(--text); font-size: 0.95rem; font-weight: 600; }
+  .overlay .submsg { color: var(--muted); font-size: 0.82rem; }
+</style>
+<script>{{ theme_script_head }}</script>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-inner">
+    <a class="brand" href="{{ home_url }}"><span class="dot"></span><b>Debrief</b></a>
+    <nav>
+      <button class="theme-toggle" id="themeToggle" onclick="bbToggleTheme()" type="button">Light mode</button>
+      <script>{{ theme_script_sync }}</script>
+    </nav>
+  </div>
+</div>
+
+<div class="wrap">
+  <div class="hero">
+    <div class="logo">Debrief<span class="dot-accent">.</span></div>
+    <div class="tagline">You flew it. Now let's go over what happened. Drop a Betaflight blackbox log below for a PID-tuning debrief -- rise time, overshoot, noise, propwash, and a staged, validated CLI fix.</div>
+    <div class="pills">
+      <span class="pill"><span class="dot"></span>100% local</span>
+      <span class="pill"><span class="dot"></span>no cloud, ever</span>
+      <span class="pill"><span class="dot"></span>no telemetry</span>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab-btn active" id="tabBtnAnalyze" onclick="bbSwitchTab('analyze')" type="button">Analyze a flight</button>
+    <button class="tab-btn" id="tabBtnCompare" onclick="bbSwitchTab('compare')" type="button">Compare two flights</button>
+  </div>
+
+  <div class="tab-panel active" id="tabAnalyze">
+    <div class="panel">
+      <form action="{{ url_for('analyze') }}" method="post" enctype="multipart/form-data" onsubmit="bbShowOverlay('Analyzing your flight...', 'Decoding, running the DSP suite, and writing the narrative -- usually 10-60s.')">
+
+        <div class="dropzone" id="dzLog">
+          <input type="file" name="log_file" id="logFileInput" accept=".bbl,.bfl,.BBL,.BFL" required style="display:none">
+          <div class="dz-icon">&#128194;</div>
+          <div class="dz-text">Drag &amp; drop your .BBL / .BFL file here, or click to browse</div>
+          <div class="dz-filename" id="logFileName"></div>
+        </div>
+
+        <details class="advanced">
+          <summary>Advanced options</summary>
+
+          <div class="field">
+            <label>Current CLI config (optional -- paste-ready `diff` output from Betaflight Configurator's CLI tab)</label>
+            <div class="dropzone small" id="dzDiff">
+              <input type="file" name="config_diff_file" id="diffFileInput" accept=".txt,.diff" style="display:none">
+              <div class="dz-text">Drop a diff.txt to unlock the staged tune generator, or leave empty</div>
+              <div class="dz-filename" id="diffFileName"></div>
+            </div>
+          </div>
+
+          {% if ollama_up %}
+          <div class="ollama-status up">&#9679; Ollama is running -- {{ models|length }} model(s) available for the narrative</div>
+          {% else %}
+          <div class="ollama-status down">&#9679; Ollama not detected at this host -- narrative will use the template-only fallback (still a complete report)</div>
+          {% endif %}
+
+          <div class="row">
+            <div class="field">
+              <label for="modelSelect">Narrative model</label>
+              <select name="model" id="modelSelect" {% if not ollama_up %}disabled{% endif %}>
+                {% for m in models %}
+                <option value="{{ m }}" {% if m == default_model %}selected{% endif %}>{{ m }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="field">
+              <label for="flightIndex">Flight index (optional)</label>
+              <input type="number" name="flight_index" id="flightIndex" min="1" placeholder="auto (longest)">
+            </div>
+          </div>
+
+          <div class="checkbox-field">
+            <input type="checkbox" name="no_llm" id="noLlm" {% if not ollama_up %}checked disabled{% endif %}>
+            <label for="noLlm">Skip the AI narrative (faster, template-only text)</label>
+          </div>
+          <div class="checkbox-field">
+            <input type="checkbox" name="rates" id="rates">
+            <label for="rates">Include rates report (measured vs configured, preference-based)</label>
+          </div>
+          <div class="checkbox-field">
+            <input type="checkbox" name="allow_disable_simplified" id="allowDisable">
+            <label for="allowDisable">If simplified tuning is active, allow disabling it to use raw PID keys</label>
+          </div>
+          <div class="hint">Nothing here is sent anywhere except this machine's own Ollama server at 127.0.0.1.</div>
+        </details>
+
+        <div class="submit-row">
+          <button class="btn btn-primary btn-lg" type="submit">Analyze flight &rarr;</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="tab-panel" id="tabCompare">
+    <div class="panel">
+      <form action="{{ url_for('compare') }}" method="post" enctype="multipart/form-data" onsubmit="bbShowOverlay('Comparing flights...', 'Running the DSP suite on both logs.')">
+        <div class="field">
+          <label>Before</label>
+          <div class="dropzone" id="dzBefore">
+            <input type="file" name="before_file" id="beforeFileInput" accept=".bbl,.bfl,.BBL,.BFL" required style="display:none">
+            <div class="dz-icon">&#128194;</div>
+            <div class="dz-text">Log from before the change</div>
+            <div class="dz-filename" id="beforeFileName"></div>
+          </div>
+        </div>
+        <div class="field">
+          <label>After</label>
+          <div class="dropzone" id="dzAfter">
+            <input type="file" name="after_file" id="afterFileInput" accept=".bbl,.bfl,.BBL,.BFL" required style="display:none">
+            <div class="dz-icon">&#128194;</div>
+            <div class="dz-text">Log from after the change</div>
+            <div class="dz-filename" id="afterFileName"></div>
+          </div>
+        </div>
+        <div class="submit-row">
+          <button class="btn btn-primary btn-lg" type="submit">Compare flights &rarr;</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <footer>
+    <span>Debrief &middot; local Betaflight blackbox analysis</span>
+    <span><span class="dot">&#9679;</span> 100% local, nothing leaves this machine</span>
+  </footer>
+</div>
+
+<div class="overlay" id="overlay">
+  <div class="spinner"></div>
+  <div class="msg" id="overlayMsg">Working...</div>
+  <div class="submsg" id="overlaySubmsg"></div>
+</div>
+
+<script>
+  function bbSetupDropzone(zoneId, inputId, nameId) {
+    var zone = document.getElementById(zoneId);
+    var input = document.getElementById(inputId);
+    var nameEl = document.getElementById(nameId);
+    function updateName() {
+      if (input.files.length) {
+        nameEl.textContent = input.files[0].name;
+        zone.classList.add("has-file");
+      } else {
+        nameEl.textContent = "";
+        zone.classList.remove("has-file");
+      }
+    }
+    zone.addEventListener("click", function () { input.click(); });
+    zone.addEventListener("dragover", function (e) { e.preventDefault(); zone.classList.add("dragover"); });
+    zone.addEventListener("dragleave", function () { zone.classList.remove("dragover"); });
+    zone.addEventListener("drop", function (e) {
+      e.preventDefault();
+      zone.classList.remove("dragover");
+      if (e.dataTransfer.files.length) { input.files = e.dataTransfer.files; updateName(); }
+    });
+    input.addEventListener("change", updateName);
+  }
+  bbSetupDropzone("dzLog", "logFileInput", "logFileName");
+  bbSetupDropzone("dzDiff", "diffFileInput", "diffFileName");
+  bbSetupDropzone("dzBefore", "beforeFileInput", "beforeFileName");
+  bbSetupDropzone("dzAfter", "afterFileInput", "afterFileName");
+
+  function bbSwitchTab(name) {
+    document.getElementById("tabAnalyze").classList.toggle("active", name === "analyze");
+    document.getElementById("tabCompare").classList.toggle("active", name === "compare");
+    document.getElementById("tabBtnAnalyze").classList.toggle("active", name === "analyze");
+    document.getElementById("tabBtnCompare").classList.toggle("active", name === "compare");
+  }
+
+  function bbShowOverlay(msg, submsg) {
+    document.getElementById("overlayMsg").textContent = msg;
+    document.getElementById("overlaySubmsg").textContent = submsg || "";
+    document.getElementById("overlay").classList.add("active");
+    // let the native form submission proceed; this just paints the overlay
+    // while the browser waits for the response.
+  }
+</script>
+</body>
+</html>

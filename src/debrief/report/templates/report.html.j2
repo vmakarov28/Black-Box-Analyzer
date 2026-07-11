@@ -2,66 +2,11 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>{{ craft_name }} -- blackbox analysis</title>
+<title>{{ craft_name }} -- Debrief</title>
 <style>
-  /* Palette pulled from the real betaflight-configurator source
-     (src/css/theme.css, .dark block) -- not a generic dark theme. */
-  :root {
-    --bg: #0a0a0a; --bg-alt: #141414; --panel: #1a1a1a; --panel-2: #212121;
-    --border: #333333; --border-2: #3d3d3d;
-    --text: #f2f2f2; --muted: #9c9c9c; --muted-2: #737373;
+{{ theme_css }}
 
-    --primary: #ffbb00; --primary-light: #ffc526; --primary-lighter: #ffea46;
-    --primary-dark: #e29000; --primary-darker: #bb6502;
-    --primary-tint: rgba(255, 187, 0, 0.1);
-
-    --success: #96e212; --success-light: #adf042; --success-dark: #79b210;
-    --error: #e2123f; --error-light: #ee2b55; --error-dark: #c10f36;
-    --warning: #ff6600; --warning-light: #ff8533; --warning-dark: #e65c00;
-
-    --crit: var(--error); --warn: var(--warning); --adv: var(--primary); --info: var(--muted);
-    --radius: 6px; --radius-sm: 3px;
-  }
-  /* betaflight-configurator's light theme surfaces (same theme.css, default
-     :root block before .dark is applied) -- brand/status colors unchanged,
-     only surfaces and text flip. */
-  html[data-theme="light"] {
-    --bg: #ffffff; --bg-alt: #fafafa; --panel: #f7f7f7; --panel-2: #f0f0f0;
-    --border: #d6d6d6; --border-2: #bfbfbf;
-    --text: #0a0a0a; --muted: #595959; --muted-2: #757575;
-    --primary-tint: rgba(255, 187, 0, 0.12);
-  }
-  * { box-sizing: border-box; }
-  body {
-    background: var(--bg); color: var(--text);
-    font-family: "Open Sans", "Segoe UI", Tahoma, sans-serif;
-    margin: 0; padding: 0 0 40px; line-height: 1.55; font-size: 14px;
-  }
-  a { color: var(--primary-light); }
-  .wrap { max-width: 1180px; margin: 0 auto; padding: 0 24px; }
-
-  /* top bar, styled after the BF Configurator tab strip */
-  .topbar {
-    background: var(--bg-alt); border-bottom: 1px solid var(--border);
-    position: sticky; top: 0; z-index: 10;
-  }
-  .topbar-inner {
-    max-width: 1180px; margin: 0 auto; padding: 0 24px;
-    display: flex; align-items: center; gap: 4px; overflow-x: auto;
-  }
-  .topbar .brand {
-    display: flex; align-items: center; gap: 8px; padding: 12px 16px 12px 0;
-    margin-right: 8px; border-right: 1px solid var(--border); white-space: nowrap;
-  }
-  .topbar .brand .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--success); box-shadow: 0 0 6px var(--success); }
-  .topbar .brand b { font-size: 0.85rem; letter-spacing: .02em; }
-  .topbar nav { display: flex; }
-  .topbar nav a {
-    color: var(--muted); text-decoration: none; font-size: 0.8rem; font-weight: 600;
-    padding: 14px 12px; border-bottom: 2px solid transparent; white-space: nowrap;
-  }
-  .topbar nav a:hover { color: var(--text); }
-
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 0 24px 40px; }
   header.hero { margin: 28px 0 20px; }
   h1 { font-size: 1.6rem; margin: 0 0 4px; font-weight: 700; letter-spacing: -.01em; }
   .subtitle { color: var(--muted); font-size: 0.85rem; }
@@ -95,15 +40,6 @@
   .finding.info { border-left-color: var(--info); }
   .finding-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
   .finding-head .title { font-weight: 700; font-size: 0.95rem; }
-  .badge {
-    font-size: 0.65rem; text-transform: uppercase; letter-spacing: .04em; font-weight: 700;
-    padding: 3px 10px; border-radius: 999px; border: 1px solid var(--border-2); color: var(--muted);
-  }
-  .badge.recommended { background: var(--success); color: #0a0a0a; border-color: var(--success); }
-  .badge.question { background: transparent; border-color: var(--warning); color: var(--warning-light); }
-  .badge.sev-critical { border-color: var(--error); color: var(--error-light); }
-  .badge.sev-warning { border-color: var(--warning); color: var(--warning-light); }
-  .badge.sev-advisory { border-color: var(--primary); color: var(--primary-light); }
   .finding-body { margin-top: 10px; font-size: 0.92rem; }
   .finding-body p { margin: 6px 0; }
   .label { color: var(--muted-2); font-size: 0.72rem; text-transform: uppercase; letter-spacing: .05em; font-weight: 600; margin-top: 12px; }
@@ -123,22 +59,6 @@
      around them stays dark in light mode too rather than mismatching. */
   .plot-card { background: #1a1a1a; border: 1px solid var(--border-2); border-radius: var(--radius); padding: 12px; }
   img.plot { width: 100%; display: block; border-radius: var(--radius-sm); }
-  table.metrics { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
-  table.metrics td, table.metrics th { padding: 8px 12px; border-bottom: 1px solid var(--border); text-align: left; }
-  table.metrics th {
-    color: var(--muted-2); font-weight: 600; font-size: 0.7rem; text-transform: uppercase; letter-spacing: .05em;
-  }
-  table.metrics tbody tr:hover { background: var(--panel-2); }
-  table.metrics code { color: var(--primary-light); font-family: "SF Mono", Consolas, monospace; font-size: 0.82em; }
-  footer {
-    color: var(--muted-2); font-size: 0.78rem; margin-top: 40px; border-top: 1px solid var(--border);
-    padding-top: 16px; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px;
-  }
-  footer .dot { color: var(--success); }
-  .warn-banner {
-    background: rgba(255, 102, 0, 0.1); border: 1px solid var(--warning); color: var(--warning-light);
-    border-radius: var(--radius); padding: 12px 16px; margin-bottom: 16px; font-size: 0.88rem;
-  }
   details.raw-header summary {
     cursor: pointer; color: var(--muted); font-size: 0.85rem; padding: 10px 0; font-weight: 600;
   }
@@ -150,48 +70,19 @@
     border-radius: var(--radius-sm); padding: 12px 14px; color: #b3b3b3;
     font-family: "SF Mono", Consolas, monospace;
   }
-  .theme-toggle {
-    margin-left: auto; background: none; border: 1px solid var(--border-2); color: var(--muted);
-    border-radius: 999px; padding: 5px 12px; font-size: 0.75rem; font-weight: 600; cursor: pointer;
-    font-family: inherit; white-space: nowrap;
-  }
-  .theme-toggle:hover { color: var(--text); border-color: var(--muted); }
   @media print {
-    .topbar, .theme-toggle { display: none !important; }
-    html[data-theme] { --bg: #fff; --bg-alt: #fff; --panel: #fff; --panel-2: #f5f5f5; --text: #000; --muted: #444; --muted-2: #555; --border: #ccc; --border-2: #bbb; }
-    body { padding: 0; }
     .wrap { max-width: none; padding: 0 12px; }
     section { margin: 18px 0; page-break-inside: avoid; }
     .finding, .plot-card, .card { border: 1px solid #ccc; }
-    a { color: inherit; text-decoration: underline; }
   }
 </style>
-<script>
-  // Applied before paint to avoid a flash of the wrong theme. All local:
-  // no network, no analytics -- just remembering light/dark across opens
-  // of this one file (best-effort; file:// localStorage can be blocked by
-  // some browsers' privacy settings, in which case it just defaults dark
-  // every time, same as if this script weren't here).
-  (function () {
-    var t = "dark";
-    try { t = localStorage.getItem("debrief-theme") || "dark"; } catch (e) {}
-    document.documentElement.setAttribute("data-theme", t);
-  })();
-  function bbToggleTheme() {
-    var html = document.documentElement;
-    var next = html.getAttribute("data-theme") === "light" ? "dark" : "light";
-    html.setAttribute("data-theme", next);
-    try { localStorage.setItem("debrief-theme", next); } catch (e) {}
-    var btn = document.getElementById("themeToggle");
-    if (btn) btn.textContent = next === "light" ? "Dark mode" : "Light mode";
-  }
-</script>
+<script>{{ theme_script_head }}</script>
 </head>
 <body>
 
 <div class="topbar">
   <div class="topbar-inner">
-    <div class="brand"><span class="dot"></span><b>debrief</b></div>
+    <a class="brand" href="{{ home_url or '#' }}"><span class="dot"></span><b>Debrief</b></a>
     <nav>
       <a href="#overview">Overview</a>
       <a href="#recommended">Recommended</a>
@@ -201,15 +92,9 @@
       {% if tune_plan %}<a href="#tune">Tune Generator</a>{% endif %}
       {% if rates_report %}<a href="#rates">Rates</a>{% endif %}
       <a href="#findings">All Findings</a>
+      <button class="btn btn-ghost" id="downloadBtn" onclick="bbDownloadReport()" type="button" style="margin-left:8px;">Download report</button>
       <button class="theme-toggle" id="themeToggle" onclick="bbToggleTheme()" type="button">Light mode</button>
-      <script>
-        (function () {
-          var btn = document.getElementById("themeToggle");
-          if (btn && document.documentElement.getAttribute("data-theme") === "light") {
-            btn.textContent = "Dark mode";
-          }
-        })();
-      </script>
+      <script>{{ theme_script_sync }}</script>
     </nav>
   </div>
 </div>
@@ -313,13 +198,20 @@
   <p class="label">Source config: {{ tune_plan.source }}{% if tune_plan.simplified_tuning_active %} &middot; simplified tuning is active{% endif %}</p>
   {% for stage in tune_plan.stages %}
   <div class="finding">
-    <div class="finding-head"><span class="title">Stage {{ loop.index }}</span></div>
+    <div class="finding-head">
+      <span class="title">Stage {{ loop.index }}</span>
+      {% if tune_plan.downloads %}<a class="btn btn-ghost" style="padding:4px 10px;font-size:.72rem;" href="{{ tune_plan.downloads[loop.index0] }}" download="stage{{ loop.index }}.txt">Download stage{{ loop.index }}.txt</a>{% endif %}
+    </div>
     <pre class="diff">{% for c in stage %}set {{ c.key }} = {{ c.new_value }}{% if c.old_value %}   # was {{ c.old_value }}{% endif %}
 {% endfor %}save</pre>
     <p class="label">Next step</p>
-    <p>Fly one test flight after this stage, then re-run debrief before applying the next.</p>
+    <p>Fly one test flight after this stage, then re-run Debrief before applying the next.</p>
   </div>
   {% endfor %}
+  {% if tune_plan.rollback_download %}
+  <p><a class="btn btn-ghost" href="{{ tune_plan.rollback_download }}" download="rollback.txt">Download rollback.txt</a>
+  {% if tune_plan.changelog_download %}<a class="btn btn-ghost" href="{{ tune_plan.changelog_download }}" download="changelog.md">Download changelog.md</a>{% endif %}</p>
+  {% endif %}
   {% if tune_plan.rejected %}
   <p class="label">Flagged for human review (never emitted)</p>
   <ul class="observations">
@@ -360,10 +252,23 @@
 </section>
 
 <footer>
-  <span>Generated by debrief {{ version }} &middot; narrative: {{ generated_by }}</span>
+  <span>Generated by Debrief {{ version }} &middot; narrative: {{ generated_by }}</span>
   <span><span class="dot">&#9679;</span> 100% local, no network requests in this file</span>
 </footer>
 
 </div>
+
+<script>
+  function bbDownloadReport() {
+    var html = "<!doctype html>\\n" + document.documentElement.outerHTML;
+    var blob = new Blob([html], { type: "text/html" });
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "{{ download_filename or 'debrief-report.html' }}";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  }
+</script>
 </body>
 </html>

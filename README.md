@@ -1,16 +1,27 @@
-# debrief
+# Debrief
 
 A local-only Betaflight blackbox log analyzer: DSP metrics in, PID-tuning
 diagnosis out, with a local LLM writing the plain-English report. Nothing
 phones home, ever -- after a one-time offline setup (building a decoder,
 pulling a local model), it runs with zero network access.
 
+"Debrief" -- the aviation term for post-mission review. You flew it; now
+let's go over what happened.
+
+```
+debrief serve
+```
+
+opens a local web app at `http://127.0.0.1:8765` with drag-and-drop
+upload/download -- no terminal commands needed after that. Prefer a
+one-shot command instead?
+
 ```
 debrief analyze mylog.bbl -o report.html
 ```
 
-opens as a single self-contained HTML file: every plot and style inlined,
-zero network requests when you open it.
+Either way you get a single self-contained HTML file: every plot and
+style inlined, zero network requests when you open it.
 
 ## Why
 
@@ -22,37 +33,61 @@ staged set of changes to test one at a time.
 
 ## Architecture
 
-Four strictly separated layers, each independently testable:
-
 ```
-parse/  .bbl/.bfl -> per-flight dataframe + header config          (Phase 1)
-dsp/    pure functions: dataframe -> ~50 named metrics, no plots    (Phase 2)
-rules/  metrics -> ordered Findings (the diagnostic logic lives here) (Phase 3)
-llm/    Findings -> plain-English narrative, local model or template (Phase 4)
-report/ Findings + narrative -> one self-contained HTML file         (Phase 5)
-tune/   Findings + pilot's config -> validated, staged CLI changes   (Phase 6)
+parse/    .bbl/.bfl -> per-flight dataframe + header config          (Phase 1)
+dsp/      pure functions: dataframe -> ~50 named metrics, no plots    (Phase 2)
+rules/    metrics -> ordered Findings (the diagnostic logic lives here) (Phase 3)
+llm/      Findings -> plain-English narrative, local model or template (Phase 4)
+report/   Findings + narrative -> one self-contained HTML file         (Phase 5)
+tune/     Findings + pilot's config -> validated, staged CLI changes   (Phase 6)
+pipeline/ shared orchestration between the CLI and the web app
+web/      local Flask app -- upload/download buttons, same pipeline
 ```
 
 The rules layer is the only place a "this is wrong" judgment is made. The
 LLM never sees raw samples -- only the metrics dict, the triggered
 Findings, and the log's header -- and it never decides *what* to change,
-only how to explain a change the rules/tune layers already computed.
+only how to explain a change the rules/tune layers already computed. The
+CLI and the web app are two thin front ends over the exact same
+`pipeline.run_analysis()` -- neither one re-implements any diagnosis.
 
 ## Setup (one-time, needs network; nothing after this does)
 
 ```bash
 git clone <this repo>
 cd fpv-blackbox-analyzer
-./scripts/setup.sh --with-llm          # builds blackbox_decode, sets up the venv
-ollama pull llama3.1:8b-instruct-q4_K_M   # or see docs/phase4-llm-benchmark.md for alternatives
+./scripts/setup.sh --with-llm --with-web   # builds blackbox_decode, sets up the venv
+ollama pull llama3.1:8b-instruct-q4_K_M    # or see docs/phase4-llm-benchmark.md for alternatives
 ```
 
 Requires a C compiler (to build `betaflight/blackbox-tools` locally) and,
 for the LLM narrative, [Ollama](https://ollama.com) with a local model
-pulled. Everything works without the LLM too -- pass `--no-llm` and the
-exact same report structure renders from templates, zero model required.
+pulled. Everything works without the LLM too -- pass `--no-llm` (CLI) or
+check "skip the AI narrative" (web UI) and the exact same report
+structure renders from templates, zero model required. `--with-web` pulls
+in Flask; skip it if you only ever want the CLI.
 
-## Usage
+## Usage: web app (no terminal commands after this)
+
+```bash
+debrief serve
+```
+
+Opens on `127.0.0.1:8765` -- reachable only from this machine by default
+(pass `--host 0.0.0.0` if you deliberately want it reachable from your
+phone/another device on your LAN). From there:
+
+- **Analyze a flight**: drag a `.bbl`/`.bfl` onto the drop zone, optionally
+  drop your current CLI `diff` to unlock the tune generator, pick options
+  under "Advanced", click Analyze. The result renders right in the
+  browser with **Download report** and per-stage **Download stageN.txt /
+  rollback.txt / changelog.md** buttons -- everything generated in memory,
+  nothing written to disk on the machine running the server until you
+  click download.
+- **Compare two flights**: drag a "before" and "after" log, get the same
+  step-response/noise delta table as `--compare`.
+
+## Usage: CLI (one-shot commands)
 
 ```bash
 # Basic report, local LLM narrative
@@ -77,7 +112,8 @@ debrief analyze --compare before.bbl after.bbl -o compare.html
 complete, standalone paste-ready `set`...`save` block, at most 3
 changes each), `rollback.txt` (restores every touched key), and
 `changelog.md`. There is never a single "apply everything" file --
-one stage, one test flight, always.
+one stage, one test flight, always. The web UI's download buttons
+produce byte-identical content via the same `tune/output.py` functions.
 
 ## Safety design (Phase 6)
 
@@ -104,9 +140,9 @@ Structural guarantees, not just conventions:
   request is rejected outright and flagged for a human -- never silently
   reduced to "close enough".
 - **Rates honesty**: rates changes are gated behind an explicit `--rates`
-  flag, always labeled preference-based, and the "configured max rate" is
-  only ever shown when computable with confidence for that rates format
-  -- never a guessed number.
+  flag (or checkbox), always labeled preference-based, and the
+  "configured max rate" is only ever shown when computable with
+  confidence for that rates format -- never a guessed number.
 
 See `docs/phase2-validation-gate.md` and `docs/phase4-llm-benchmark.md`
 for two real bugs this project's own validation/benchmarking process
@@ -120,9 +156,11 @@ conservative-bias rule earns its keep in practice, not just a claim.
 pytest tests/ -v
 ```
 
-~85 tests across all six layers, run against real sample logs (from
-Plasmatree/PID-Analyzer's example set) plus synthetic edge cases (short
-segments, idle flight, corrupt/truncated files, multi-flight logs).
+~95 tests across all layers (parse/dsp/rules/llm/report/tune/web), run
+against real sample logs (from Plasmatree/PID-Analyzer's example set)
+plus synthetic edge cases (short segments, idle flight, corrupt/truncated
+files, multi-flight logs) and, for the web app, Flask's test client
+driving real file uploads through `/analyze` and `/compare`.
 
 `tools/validate_step_response.py` and `tools/eval_parsers.py` are dev-only
 validation scripts that compare this tool's output against the real
@@ -141,10 +179,15 @@ first and are never imported by `debrief` itself.
   filtered-vs-unfiltered comparison (a false positive with 0.0ms latency).
 - `docs/phase4-llm-benchmark.md` -- 3-model local LLM comparison and the
   fabricated-PID-value bug it caught.
+- `docs/ui-theme.md` -- where the color palette actually comes from
+  (betaflight-configurator's real source, not a guess) and how the
+  light/dark toggle and print stylesheet work.
 
 ## What this tool will never do
 
-- Make a network request after initial setup.
+- Make a network request after initial setup (the web app binds to
+  127.0.0.1 by default and talks to nothing but this machine's own
+  Ollama server).
 - Emit a CLI key outside the tuning whitelist.
 - Emit a key that doesn't verifiably exist in your actual firmware/config.
 - Present a heuristic threshold as measured fact -- anything not sourced

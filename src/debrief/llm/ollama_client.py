@@ -50,6 +50,15 @@ class OllamaClient:
             return False
         return model in names or f"{model}:latest" in names
 
+    def list_models(self) -> list[str]:
+        """Model tags actually pulled on this machine, for populating a
+        picker -- never a hardcoded guess at what's installed.
+        """
+        try:
+            return sorted(m.model for m in self._client.list().models)
+        except Exception:
+            return []
+
     def generate_json(self, model: str, prompt: str, timeout_s: float = DEFAULT_TIMEOUT_S) -> dict:
         import time
 

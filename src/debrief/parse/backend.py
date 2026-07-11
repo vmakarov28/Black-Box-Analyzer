@@ -37,16 +37,16 @@ _REPO_DEFAULT = Path(__file__).resolve().parents[3] / "vendor" / "blackbox-tools
 
 def find_blackbox_decode() -> Path:
     """Resolve the blackbox_decode binary, in priority order:
-    1. $BBANALYZER_BLACKBOX_DECODE
+    1. $DEBRIEF_BLACKBOX_DECODE
     2. vendor/blackbox-tools/obj/blackbox_decode next to a repo checkout (dev)
     3. blackbox_decode on $PATH
     """
-    env = os.environ.get("BBANALYZER_BLACKBOX_DECODE")
+    env = os.environ.get("DEBRIEF_BLACKBOX_DECODE")
     if env:
         p = Path(env)
         if p.is_file():
             return p
-        raise LogParseError(f"BBANALYZER_BLACKBOX_DECODE={env!r} does not point to a file")
+        raise LogParseError(f"DEBRIEF_BLACKBOX_DECODE={env!r} does not point to a file")
 
     if _REPO_DEFAULT.is_file():
         return _REPO_DEFAULT
@@ -57,7 +57,7 @@ def find_blackbox_decode() -> Path:
 
     raise LogParseError(
         "blackbox_decode binary not found. Run scripts/setup.sh once to clone+build "
-        "betaflight/blackbox-tools, or set BBANALYZER_BLACKBOX_DECODE to an existing binary."
+        "betaflight/blackbox-tools, or set DEBRIEF_BLACKBOX_DECODE to an existing binary."
     )
 
 
