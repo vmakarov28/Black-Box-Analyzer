@@ -2,7 +2,7 @@
 log and numerically reconcile our step-response/noise output against it.
 
 Requires vendor/PID-Analyzer (see scripts/setup.sh --with-validator) --
-dev-only, never imported by bbanalyzer itself at runtime.
+dev-only, never imported by debrief itself at runtime.
 
 Usage (from repo root, inside the WSL venv):
     python tools/validate_step_response.py tests/data/good_tune.BBL
@@ -24,16 +24,16 @@ import numpy as np  # noqa: E402
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "src"))
 
-from bbanalyzer.dsp.step_response import _extract_step_metrics  # noqa: E402
-from bbanalyzer.parse import load as bb_load  # noqa: E402
-from bbanalyzer.dsp.metrics import _throttle_pct  # noqa: E402
+from debrief.dsp.step_response import _extract_step_metrics  # noqa: E402
+from debrief.parse import load as bb_load  # noqa: E402
+from debrief.dsp.metrics import _throttle_pct  # noqa: E402
 
 
 def _shim_legacy_numpy_api():
     """PID-Analyzer.py (2018) calls np.histogram/np.histogram2d with the
     'normed' kwarg, removed in numpy>=1.24 in favor of 'density'. Patched
     here rather than editing the vendored reference file, and only for the
-    duration of running it -- never applied to bbanalyzer's own code.
+    duration of running it -- never applied to debrief's own code.
     """
     orig_hist = np.histogram
     orig_hist2d = np.histogram2d
@@ -140,7 +140,7 @@ def main():
     time_s = df["time_s"].to_numpy(dtype=np.float64)
     throttle_pct = _throttle_pct(df, flight.header)
 
-    from bbanalyzer.dsp.step_response import compute_step_response
+    from debrief.dsp.step_response import compute_step_response
 
     axis_map = {"roll": ref_csvlog.roll, "pitch": ref_csvlog.pitch, "yaw": ref_csvlog.yaw}
     print(f"\n{'axis':6s} {'metric':22s} {'ours':>10s} {'reference (derived)':>20s}")
@@ -169,7 +169,7 @@ def main():
         cmp_all_vs_low = compare_curves("ours(all) vs ref(low)", ours.time_s, ours.response, ref_time, ref_resp_low)
         print("ours(all-input) vs ref(low-input) curve comparison:", cmp_all_vs_low)
 
-    from bbanalyzer.dsp.noise import compute_noise_heatmap
+    from debrief.dsp.noise import compute_noise_heatmap
 
     print("\n=== Noise heatmap (throttle x frequency) ===")
     for axis, idx in [("roll", 0), ("pitch", 1), ("yaw", 2)]:

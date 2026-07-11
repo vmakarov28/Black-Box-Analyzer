@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from bbanalyzer.cli import main
+from debrief.cli import main
 
 DATA = Path(__file__).parent / "data"
 

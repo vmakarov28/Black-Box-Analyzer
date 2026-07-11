@@ -1,6 +1,6 @@
 import numpy as np
 
-from bbanalyzer.dsp.noise import compute_noise_heatmap, detect_diagonal_trace, detect_horizontal_bands
+from debrief.dsp.noise import compute_noise_heatmap, detect_diagonal_trace, detect_horizontal_bands
 
 
 def _ramp_then_hold(t, duration_s, ramp_frac=0.85):

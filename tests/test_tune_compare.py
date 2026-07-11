@@ -1,8 +1,8 @@
 from pathlib import Path
 
-from bbanalyzer.dsp import compute_flight_metrics
-from bbanalyzer.parse import load
-from bbanalyzer.tune.compare import compare_flights
+from debrief.dsp import compute_flight_metrics
+from debrief.parse import load
+from debrief.tune.compare import compare_flights
 
 DATA = Path(__file__).parent / "data"
 
@@ -18,7 +18,7 @@ def test_compare_identical_flight_shows_zero_deltas():
 
 
 def test_compare_direction_of_improvement_labeled_correctly():
-    from bbanalyzer.tune.compare import _delta_row
+    from debrief.tune.compare import _delta_row
 
     # rise_time_s: lower is better
     row = _delta_row("roll.rise_time_s", 0.020, 0.010)
@@ -38,7 +38,7 @@ def test_compare_direction_of_improvement_labeled_correctly():
 
 
 def test_compare_missing_data_reports_none_not_a_fabricated_delta():
-    from bbanalyzer.tune.compare import _delta_row
+    from debrief.tune.compare import _delta_row
 
     row = _delta_row("roll.rise_time_s", None, 0.010)
     assert row.delta is None

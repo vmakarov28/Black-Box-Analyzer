@@ -12,11 +12,11 @@ applies a narrow, clearly-commented compatibility shim (int-coerce histogram
 bin counts, `normed`->`density`) purely for the duration of running it, and
 bypasses its `CSV_log.__init__` plotting calls (an unrelated matplotlib API
 mismatch) since only the numeric `Trace` objects are needed. None of this
-touches `bbanalyzer`'s own code.
+touches `debrief`'s own code.
 
 ## Step response
 
-`bbanalyzer.dsp.step_response` is a direct port of `Trace`'s windowed Wiener
+`debrief.dsp.step_response` is a direct port of `Trace`'s windowed Wiener
 deconvolution + weighted-mode-average (see module docstrings for the exact
 mapping). Comparing our `response_low` curve against the reference's
 `resp_low` curve, same log (`good_tune.BBL`), same axis inputs:
@@ -34,7 +34,7 @@ The table's "overshoot_pct" column applies our own `_extract_step_metrics`
 to *both* curves for a true apples-to-apples comparison (PID-Analyzer itself
 never computes rise/overshoot/settling numbers -- it only plots the curve).
 
-One number in `bbanalyzer`'s own metrics output legitimately differs from
+One number in `debrief`'s own metrics output legitimately differs from
 this table: `compute_flight_metrics` reports overshoot/rise/settling from
 the **all-active-input** response (low- and high-stick windows combined),
 not low-input-only, because that's the more representative number for a
@@ -59,7 +59,7 @@ of a physical response. Flagged here rather than silently "fixed", since
 
 First pass showed a ~100x total-energy mismatch and unexplained mean-frequency
 differences. Root-caused to two real issues, both now fixed in
-`bbanalyzer.dsp.noise.compute_noise_heatmap`:
+`debrief.dsp.noise.compute_noise_heatmap`:
 
 1. **Validation script bug**: compared against the reference's raw
    `hist2d` (pre-throttle-normalization) instead of `hist2d_sm`

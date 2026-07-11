@@ -2,7 +2,7 @@ from pathlib import Path
 
 import pytest
 
-from bbanalyzer.parse import LogParseError, load
+from debrief.parse import LogParseError, load
 
 DATA = Path(__file__).parent / "data"
 

@@ -1,8 +1,8 @@
 from pathlib import Path
 
-from bbanalyzer.dsp import compute_flight_metrics
-from bbanalyzer.parse import load
-from bbanalyzer.tune.rates_report import build_rates_report
+from debrief.dsp import compute_flight_metrics
+from debrief.parse import load
+from debrief.tune.rates_report import build_rates_report
 
 DATA = Path(__file__).parent / "data"
 
@@ -29,8 +29,8 @@ def test_rates_report_legacy_formula_used_for_legacy_config():
 
 
 def test_rates_report_never_fabricates_unavailable_formula():
-    from bbanalyzer.dsp.metrics import FlightMetrics
-    from bbanalyzer.parse.header import HeaderConfig
+    from debrief.dsp.metrics import FlightMetrics
+    from debrief.parse.header import HeaderConfig
 
     cfg = HeaderConfig(raw={})
     cfg.rates_raw = {"rates_type": "ACTUAL", "roll_rc_rate": "7"}  # modern format, deliberately unimplemented

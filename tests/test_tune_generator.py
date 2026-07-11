@@ -1,6 +1,6 @@
-from bbanalyzer.rules.flag import Confidence, Finding, ParamHint, Severity
-from bbanalyzer.tune.config_model import TuneConfig
-from bbanalyzer.tune.generator import generate_tune_plan
+from debrief.rules.flag import Confidence, Finding, ParamHint, Severity
+from debrief.tune.config_model import TuneConfig
+from debrief.tune.generator import generate_tune_plan
 
 
 def _finding(id_, key, direction, magnitude_pct=10.0, axis="roll", recommended=True) -> Finding:

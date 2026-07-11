@@ -1,10 +1,10 @@
 from pathlib import Path
 
-from bbanalyzer.parse.header import normalize
-from bbanalyzer.tune.diff_parser import parse_cli_diff
-from bbanalyzer.tune.output import write_tune_files
-from bbanalyzer.tune.reconcile import check_diff_vs_header_agreement
-from bbanalyzer.tune.whitelist import RATES_KEYS, TUNING_WHITELIST, is_whitelisted
+from debrief.parse.header import normalize
+from debrief.tune.diff_parser import parse_cli_diff
+from debrief.tune.output import write_tune_files
+from debrief.tune.reconcile import check_diff_vs_header_agreement
+from debrief.tune.whitelist import RATES_KEYS, TUNING_WHITELIST, is_whitelisted
 
 SAMPLE_DIFF = """\
 # diff
@@ -94,7 +94,7 @@ def test_reconcile_flags_firmware_version_mismatch():
 # --- output --------------------------------------------------------------
 
 def test_write_tune_files_never_writes_an_apply_all_file(tmp_path):
-    from bbanalyzer.tune.generator import CLIChange, TuneGeneratorResult
+    from debrief.tune.generator import CLIChange, TuneGeneratorResult
 
     result = TuneGeneratorResult(
         stages=[[CLIChange("p_roll", "40", "44", "reason 1", "f1", "high")], [CLIChange("d_roll", "20", "18", "reason 2", "f2", "medium")]],

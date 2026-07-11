@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from bbanalyzer.dsp.step_response import compute_step_response
+from debrief.dsp.step_response import compute_step_response
 
 
 def _synthetic_flight(duration_s=20.0, fs=1000.0, seed=0):
@@ -73,7 +73,7 @@ def test_step_response_against_real_log_matches_validated_values():
     """
     from pathlib import Path
 
-    from bbanalyzer.parse import load
+    from debrief.parse import load
 
     lf = load(Path(__file__).parent / "data" / "good_tune.BBL")
     f = lf.flights[0]

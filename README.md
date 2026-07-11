@@ -1,4 +1,4 @@
-# bbanalyzer
+# debrief
 
 A local-only Betaflight blackbox log analyzer: DSP metrics in, PID-tuning
 diagnosis out, with a local LLM writing the plain-English report. Nothing
@@ -6,7 +6,7 @@ phones home, ever -- after a one-time offline setup (building a decoder,
 pulling a local model), it runs with zero network access.
 
 ```
-bbanalyzer analyze mylog.bbl -o report.html
+debrief analyze mylog.bbl -o report.html
 ```
 
 opens as a single self-contained HTML file: every plot and style inlined,
@@ -56,21 +56,21 @@ exact same report structure renders from templates, zero model required.
 
 ```bash
 # Basic report, local LLM narrative
-bbanalyzer analyze mylog.bbl -o report.html
+debrief analyze mylog.bbl -o report.html
 
 # No model installed / don't want to wait -- identical report structure
-bbanalyzer analyze mylog.bbl -o report.html --no-llm
+debrief analyze mylog.bbl -o report.html --no-llm
 
 # With your current tune (paste-ready `diff` output from Betaflight
 # Configurator) -- unlocks the tune generator's staged CLI files
-bbanalyzer analyze mylog.bbl -o report.html \
+debrief analyze mylog.bbl -o report.html \
     --config-diff my_current_diff.txt --tune-output-dir ./tune_out
 
 # Include a rates-usage report (measured vs configured, preference only)
-bbanalyzer analyze mylog.bbl -o report.html --rates
+debrief analyze mylog.bbl -o report.html --rates
 
 # Verify a staged change actually helped
-bbanalyzer analyze --compare before.bbl after.bbl -o compare.html
+debrief analyze --compare before.bbl after.bbl -o compare.html
 ```
 
 `--tune-output-dir` writes `stage1.txt`, `stage2.txt`, ... (each a
@@ -129,7 +129,7 @@ validation scripts that compare this tool's output against the real
 Plasmatree PID-Analyzer and orangebox, respectively -- see
 `docs/phase1-parser-evaluation.md` and `docs/phase2-validation-gate.md`
 for what they found. They need `./scripts/setup.sh --with-validator`
-first and are never imported by `bbanalyzer` itself.
+first and are never imported by `debrief` itself.
 
 ## Design notes / phase docs
 

@@ -1,7 +1,7 @@
 import numpy as np
 from scipy import signal
 
-from bbanalyzer.dsp.filter_analysis import compare_filtered_vs_unfiltered, detect_unfiltered_proxy
+from debrief.dsp.filter_analysis import compare_filtered_vs_unfiltered, detect_unfiltered_proxy
 
 
 def _filtered_and_unfiltered(fs=2000.0, duration_s=10.0, delay_samples=8, seed=0):

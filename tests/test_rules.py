@@ -1,11 +1,11 @@
 from pathlib import Path
 
-from bbanalyzer.dsp import compute_flight_metrics
-from bbanalyzer.parse import header as header_mod
-from bbanalyzer.parse import load
-from bbanalyzer.rules import diagnose
-from bbanalyzer.rules.config_checks import run_config_checks
-from bbanalyzer.rules.flag import Severity
+from debrief.dsp import compute_flight_metrics
+from debrief.parse import header as header_mod
+from debrief.parse import load
+from debrief.rules import diagnose
+from debrief.rules.config_checks import run_config_checks
+from debrief.rules.flag import Severity
 
 DATA = Path(__file__).parent / "data"
 

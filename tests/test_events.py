@@ -1,6 +1,6 @@
 import numpy as np
 
-from bbanalyzer.dsp.events import detect_stick_snaps, detect_throttle_chops, score_propwash
+from debrief.dsp.events import detect_stick_snaps, detect_throttle_chops, score_propwash
 
 
 def test_detect_throttle_chop():

@@ -58,7 +58,7 @@ The one thing blackbox_decode does *not* give us is the header/config
 dict — it only writes frame CSVs. That turned out not to matter: the
 header is a run of plain-text `H key:value` lines at the start of each
 embedded log (see raw bytes below), trivial to parse directly with zero
-dependency (`bbanalyzer/parse/header.py`). So the final design uses
+dependency (`debrief/parse/header.py`). So the final design uses
 **neither parser's header handling** — it reads the header text itself,
 and uses blackbox_decode purely for frame data.
 
@@ -80,7 +80,7 @@ correspondence with blackbox_decode's `--index` numbering for free.
 
 ## Licensing note
 
-`blackbox-tools` is GPLv3. bbanalyzer invokes it as a separate subprocess
+`blackbox-tools` is GPLv3. debrief invokes it as a separate subprocess
 (never linked, never bundled in this repo) — the same "mere aggregation via
 subprocess" pattern used by countless MIT/BSD tools that shell out to GPL
 CLIs (ffmpeg being the canonical example). `scripts/setup.sh` clones and
@@ -99,7 +99,7 @@ axisP[axis] = P_gain * 0.032029 * (setpoint - gyro)
   =>  setpoint = gyro + axisP[axis] / (0.032029 * P_gain)
 ```
 
-See `bbanalyzer/parse/setpoint.py`. This needs only the logged P-term,
+See `debrief/parse/setpoint.py`. This needs only the logged P-term,
 gyro, and the header's P gain — no rates-formula bookkeeping, and it
 reflects what the flight controller's PID loop actually targeted (RC
 smoothing/interpolation included).

@@ -1,11 +1,11 @@
 import re
 from pathlib import Path
 
-from bbanalyzer.dsp import compute_flight_metrics
-from bbanalyzer.llm.fallback import render_fallback_narrative
-from bbanalyzer.parse import load
-from bbanalyzer.report import render_report
-from bbanalyzer.rules import diagnose
+from debrief.dsp import compute_flight_metrics
+from debrief.llm.fallback import render_fallback_narrative
+from debrief.parse import load
+from debrief.report import render_report
+from debrief.rules import diagnose
 
 DATA = Path(__file__).parent / "data"
 
@@ -49,8 +49,8 @@ def test_render_report_has_working_theme_toggle(tmp_path):
 
 
 def test_render_report_no_recommended_findings(tmp_path):
-    from bbanalyzer.dsp.metrics import FlightMetrics
-    from bbanalyzer.llm.schema import NarrativeReport
+    from debrief.dsp.metrics import FlightMetrics
+    from debrief.llm.schema import NarrativeReport
 
     lf = load(DATA / "good_tune.BBL")
     flight = lf.flights[0]

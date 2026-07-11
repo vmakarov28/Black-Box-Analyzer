@@ -3,11 +3,11 @@
 #
 # What this fetches from the network (once):
 #   - betaflight/blackbox-tools source, built locally into a native binary
-#     that bbanalyzer shells out to for frame decoding.
+#     that debrief shells out to for frame decoding.
 #   - (dev only, --with-validator) PID-Analyzer source, used purely as a
 #     Phase 2 validation-gate reference -- never imported at runtime.
-# Nothing here is a runtime dependency of bbanalyzer itself; after this
-# script finishes, `bbanalyzer analyze ...` makes zero network requests.
+# Nothing here is a runtime dependency of debrief itself; after this
+# script finishes, `debrief analyze ...` makes zero network requests.
 set -euo pipefail
 cd "$(dirname "${BASH_SOURCE[0]}")/.."
 
@@ -63,4 +63,4 @@ fi
 
 echo
 echo "Setup complete. Activate with: source $VENV_DIR/bin/activate"
-echo "Try:  bbanalyzer analyze tests/data/good_tune.BBL -o /tmp/report.html"
+echo "Try:  debrief analyze tests/data/good_tune.BBL -o /tmp/report.html"

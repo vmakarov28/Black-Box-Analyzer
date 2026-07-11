@@ -14,11 +14,11 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "src"))
 
-from bbanalyzer.dsp import compute_flight_metrics  # noqa: E402
-from bbanalyzer.llm.narrative import build_narrative  # noqa: E402
-from bbanalyzer.llm.ollama_client import OllamaClient  # noqa: E402
-from bbanalyzer.parse import load  # noqa: E402
-from bbanalyzer.rules import diagnose  # noqa: E402
+from debrief.dsp import compute_flight_metrics  # noqa: E402
+from debrief.llm.narrative import build_narrative  # noqa: E402
+from debrief.llm.ollama_client import OllamaClient  # noqa: E402
+from debrief.parse import load  # noqa: E402
+from debrief.rules import diagnose  # noqa: E402
 
 CANDIDATES = [
     "llama3.1:8b-instruct-q4_K_M",

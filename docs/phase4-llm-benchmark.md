@@ -40,7 +40,7 @@ free-text fields (`whats_wrong`, `why_plain_english`,
 confidently in prose reads as authoritative to a pilot even outside a
 formal diff block.
 
-Fixed two ways (`bbanalyzer/llm/narrative.py`, `prompts/narrative_prompt.j2`):
+Fixed two ways (`debrief/llm/narrative.py`, `prompts/narrative_prompt.j2`):
 
 1. **Prompt**: added an explicit rule with a worked WRONG/RIGHT example,
    specifically calling out that seeing a current value does not license

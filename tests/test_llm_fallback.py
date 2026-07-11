@@ -1,9 +1,9 @@
 from pathlib import Path
 
-from bbanalyzer.dsp import compute_flight_metrics
-from bbanalyzer.llm import render_fallback_narrative
-from bbanalyzer.parse import load
-from bbanalyzer.rules import diagnose
+from debrief.dsp import compute_flight_metrics
+from debrief.llm import render_fallback_narrative
+from debrief.parse import load
+from debrief.rules import diagnose
 
 DATA = Path(__file__).parent / "data"
 
@@ -27,7 +27,7 @@ def test_low_confidence_findings_phrased_as_questions():
     m = compute_flight_metrics(f)
     findings = diagnose(m, f.config)
 
-    from bbanalyzer.rules.flag import Confidence
+    from debrief.rules.flag import Confidence
 
     for finding in findings:
         if not finding.recommended:
@@ -69,7 +69,7 @@ def test_fallback_uses_supplied_validated_cli_diff():
 
 
 def test_fallback_on_no_findings():
-    from bbanalyzer.dsp.metrics import FlightMetrics
+    from debrief.dsp.metrics import FlightMetrics
 
     empty_metrics = FlightMetrics(axes={}, throttle_chop_count=0, flat={})
     report = render_fallback_narrative([], empty_metrics)

@@ -1,9 +1,9 @@
 from pathlib import Path
 
-from bbanalyzer.dsp import compute_flight_metrics
-from bbanalyzer.llm.narrative import _build_prompt, _parse_response, build_narrative
-from bbanalyzer.parse import load
-from bbanalyzer.rules import diagnose
+from debrief.dsp import compute_flight_metrics
+from debrief.llm.narrative import _build_prompt, _parse_response, build_narrative
+from debrief.parse import load
+from debrief.rules import diagnose
 
 DATA = Path(__file__).parent / "data"
 

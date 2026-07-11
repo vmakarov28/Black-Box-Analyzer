@@ -3,7 +3,7 @@ requires = ["setuptools>=68", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "bbanalyzer"
+name = "debrief"
 version = "0.1.0"
 description = "Local-only Betaflight blackbox log analyzer: DSP metrics, rule-based tuning diagnosis, local LLM narrative."
 readme = "README.md"
@@ -19,10 +19,11 @@ dependencies = [
 
 [project.optional-dependencies]
 llm = ["ollama>=0.3.0"]
+web = ["flask>=3.0"]
 dev = ["pytest>=8.0", "pytest-cov"]
 
 [project.scripts]
-bbanalyzer = "bbanalyzer.cli:main"
+debrief = "debrief.cli:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]

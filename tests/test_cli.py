@@ -2,9 +2,9 @@ from pathlib import Path
 
 import pandas as pd
 
-from bbanalyzer.cli import _select_flight, main
-from bbanalyzer.parse.header import HeaderConfig
-from bbanalyzer.parse.loader import Flight, LogFile
+from debrief.cli import _select_flight, main
+from debrief.parse.header import HeaderConfig
+from debrief.parse.loader import Flight, LogFile
 
 DATA = Path(__file__).parent / "data"
 

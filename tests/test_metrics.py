@@ -1,7 +1,7 @@
 from pathlib import Path
 
-from bbanalyzer.dsp import compute_flight_metrics
-from bbanalyzer.parse import load
+from debrief.dsp import compute_flight_metrics
+from debrief.parse import load
 
 DATA = Path(__file__).parent / "data"
 
