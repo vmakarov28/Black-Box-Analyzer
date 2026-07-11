@@ -31,6 +31,14 @@ tools (PID-Analyzer, blackbox_explorer) plot it; this tool also *explains*
 it and, if you supply your current CLI config, proposes a validated,
 staged set of changes to test one at a time.
 
+## Don't have a log yet?
+
+`docs/blackbox-recording-setup.md` has copy-pasteable CLI commands for
+enabling blackbox recording (onboard flash, SD card, or an external
+serial logger), every variable name checked against Betaflight's own
+firmware source rather than guessed. No drone handy at all? `tests/data/`
+already has two sample logs you can drop straight into `debrief serve`.
+
 ## Architecture
 
 ```
@@ -182,6 +190,10 @@ first and are never imported by `debrief` itself.
 - `docs/ui-theme.md` -- where the color palette actually comes from
   (betaflight-configurator's real source, not a guess) and how the
   light/dark toggle and print stylesheet work.
+- `docs/web-ui.md` -- how the local web app stays local (temp-dir
+  uploads, data-URI downloads, no server-side session state).
+- `docs/blackbox-recording-setup.md` -- CLI commands for setting up
+  blackbox recording itself, sourced from Betaflight's firmware code.
 
 ## What this tool will never do
 
