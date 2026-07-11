@@ -1,0 +1,15 @@
+vendor/
+__pycache__/
+*.pyc
+.venv/
+*.csv
+reports/
+*.egg-info/
+build/
+dist/
+.pytest_cache/
+.coverage
+htmlcov/
+tools/_decode_out/
+*.bfl.tmp
+.ipynb_checkpoints/
